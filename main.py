@@ -37,7 +37,7 @@ def webcrawler(links, crawl):
     for link in soup.find_all('a', attrs={'href': re.compile("^https://")}):
         if url_check(link.get('href'), links):
             links.append(link.get('href'))
-        if len(links) >= 10:
+        if len(links) >= 60:
             return
     webcrawler(links, crawl)
 
@@ -52,30 +52,9 @@ is "good" or not.
 
 def url_check(url, links):
     # filter through the potential links
-    wanted = ['graduation', 'graduate', '']
-    unwanted = ['2021', '2019']
-    if any(word in str(url) for word in wanted):
-        if not any(word in str(url) for word in unwanted):
-            if url not in links:
-                return True
+    if url not in links:
+        return True
     return False
-
-
-def allurls(links, crawl):
-    url = links[crawl]
-    crawl += 1
-    # open the url and get in html format
-    try:
-        html = request.urlopen(url).read().decode('utf8')
-    except HTTPError:
-        print("Unable to open webpage. Exiting program...")
-        exit(1)
-    soup = BeautifulSoup(html, "html.parser")
-    for link in soup.find_all('a', attrs={'href': re.compile("^https://")}):
-        links.append(link.get('href'))
-        if len(links) > 100:
-            return
-    allurls(links, crawl)
 
 
 '''
@@ -87,10 +66,9 @@ knowledge base.
 
 
 def main():
-    url = 'https://registrar.utdallas.edu/graduation/'  # root page
+    url = 'https://www.utdallas.edu/'  # root page
     links = [url]
-    allurls(links, 0)
-    # webcrawler(links, 0)
+    webcrawler(links, 0)
     print(links)
 
 
