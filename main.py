@@ -30,18 +30,15 @@ def webcrawler(links, crawl):
     # open the url and get in html format
     try:
         html = request.urlopen(url).read().decode('utf8')
+        soup = BeautifulSoup(html, "html.parser")
+        for link in soup.find_all('a', attrs={'href': re.compile("^https://")}):
+            if url_check(link.get('href'), links):
+                links.append(link.get('href'))
+        webcrawler(links, crawl)
     except HTTPError:
-        print("Unable to open webpage. Exiting program...")
-        exit(1)
-    soup = BeautifulSoup(html, "html.parser")
-    for link in soup.find_all('a', attrs={'href': re.compile("^https://")}):
-        if url_check(link.get('href'), links):
-            links.append(link.get('href'))
-        if len(links) >= 60:
-            return
-    webcrawler(links, crawl)
-
-
+        print(f"Unable to open {url}.")
+        #if len(links) >= 60:
+        #    return
 '''
 Url_check() filters out any potentially unwanted links using terms
 I found to be impactful. It takes a url and a list of links as 
@@ -70,6 +67,8 @@ def main():
     links = [url]
     webcrawler(links, 0)
     print(links)
+    outFile = open("results.p", "wb")
+    pickle.dump(links, outFile)
 
 
 if __name__ == '__main__':
