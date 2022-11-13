@@ -12,8 +12,9 @@ nlp = spacy.load('en_core_web_md')
 kb = pickle.load(open("mazidi_book_kb.p", "rb"))
 choose = lambda arr: random.choice(arr)
 
-def find_occurrence(list, text):
-    for word in list:
+
+def find_occurrence(arr, text):
+    for word in arr:
         if word in text:
             return True
     return False
@@ -47,9 +48,10 @@ class ChatBot:
         self.dislikes_list = []
 
     def respond(self, user_input):
+        user_input = user_input.lower()
         doc = nlp(user_input)
         
-        response = None
+        response = ""
         if new_name := self.find_name(doc):
             response = cfg.NAME_RESPONSES[self.name_response_idx].format(
                 name=self.user_name,
@@ -74,32 +76,24 @@ class ChatBot:
                 response = choose(cfg.LIKE_PREPENDS).format(word=word)
             elif self.dislikes(user_input):
                 response = choose(cfg.DISLIKE_PREPENDS).format(word=word)
-            if len(prep(doc)) > 0:
-                matches = []
-                for i, entry in cfg.index(kb["lookup"]):
-                    s1 = nlp(entry[0])
-                    sim = similarity(doc,s1)
-                    if sim >= cfg.MIN_SIM:
-                        matches.append(i)
-                if len(matches) > 0:
-                    response = str(len(matches))+kb["lookup"][choose(matches)]
-        if response is None:
+            if find_occurrence(kb["keywords"], doc.text):
+                responses = []
+                for token in doc:
+                    if token.text in kb["keywords"]:
+                        responses.extend(kb["lookup"][token.text])
+                if len(responses) > 0:
+                    response += choose(responses)
+        if response == "":
             response = choose(cfg.CONFUSED)
             self.confused_response_idx = (self.confused_response_idx + 1) % len(cfg.CONFUSED)
         self.chat(response)
 
   
     def likes(self, user_input):
-        for word in self.likes_list:
-            if word in user_input:
-                return True
-        return False
+        return find_occurrence(self.likes_list, user_input)
 
     def dislikes(self, user_input):
-        for word in self.dislikes_list:
-            if word in user_input:
-                return True
-        return False
+        return find_occurrence(self.dislikes_list, user_input)
 
     def find_like(self, doc):
         like = None
@@ -151,13 +145,14 @@ class ChatBot:
 
     def run(self):
         self.screen.update()
-        self.chat("Hi! I'm NLPete, your comprehensive guide on natural language processing! How can I help you today?")
+        self.chat(cfg.INTRO)
         self.screen.update()
         while True:
             self.screen.update()
             res = self.screen.step()
-            self.screen.update()
-            if res == "break":
+            if res in cfg.EXIT_WORDS:
+                self.chat(choose(cfg.GOODBYES))
+                self.screen.update(True)
                 break
             elif res is not None:
                 # Otherwise it returned

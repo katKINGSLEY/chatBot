@@ -2,6 +2,7 @@ import PyPDF2
 import pickle
 import spacy
 import re
+import yake
 from nltk import sent_tokenize
 from nltk.corpus import stopwords
 
@@ -19,7 +20,7 @@ def filter(sent):
 		print("Clip bytes")
 		return False
 	return ((len(sent) > 200 and len(sent) > 20)
-	   	and (sent.count(".") > 15))
+		and (sent.count(".") > 15))
 
 
 if __name__ == "__main__":
@@ -40,6 +41,9 @@ if __name__ == "__main__":
 		text += " " + page.extractText().encode('utf-8').decode('ascii', 'ignore')
 	pdf_file.close()
 
+	text = ' '.join(text.split())
+	text = text.replace("*** Draft copy of NLP with Python by Karen Mazidi: Do not distribute ***", "")	
+	sents = sent_tokenize(text)
 
 	kb = {}
 	kb["words"] = {}
@@ -47,17 +51,24 @@ if __name__ == "__main__":
 		if word.isalpha() and word not in stop_words:
 			kb["words"][word] = True
 
-	text = ' '.join(text.split())
-	text = text.replace("*** Draft copy of NLP with Python by Karen Mazidi: Do not distribute ***", "")	
-	sents = sent_tokenize(text)
-	kb["lookup"] = []
+	'''
 	for i in range(1,len(sents)):
 		s0 = sents[i-1]
 		#s1 = sents[i]
 		if not filter(s0):# and not filter(s1):
 			kb["lookup"].append(s0)#(s0, s1))
-	print(kb)
-	open("out.txt","w").write("\n".join([f"<{k}" for k in kb["lookup"]]))
+	'''
+	# open("out.txt","w").write("\n".join([f"<{k}" for k in kb["lookup"]]))
+
+	extractor = yake.KeywordExtractor(top=1500, stopwords=stop_words)  # change number of keywords HERE!
+	kb["keywords"] = [kw.lower() for kw, v in extractor.extract_keywords(text.lower())]
+	kb["lookup"] = {}
+	for keyword in kb["keywords"]:
+		kb["lookup"][keyword] = []
+		for sent in sents:
+			if keyword in sent.lower():
+				kb["lookup"][keyword].append(sent)
+
 	pickle_file = open("mazidi_book_kb.p", "wb")
 	pickle.dump(kb, pickle_file)
 	pickle_file.close()

@@ -1,8 +1,12 @@
 ##########################################################
 #------------------Chatbot definitions-------------------#
 ##########################################################
-# Minimum similarity to warrant a match in the KB
-MIN_MATCHES =
+
+INTRO = "Hi! I'm NLPete, your comprehensive guide on natural language processing! What's your name?"
+
+EXIT_WORDS = ["break", "quit", "goodbye", "bye", "exit", "let me out", ":wq", ":q"]
+
+GOODBYES = ["Bye, have a nice day!", "Thanks for talking with me!", "Leaving so soon? Okay :("]
 
 LIKE_VERBS = ["like", "enjoy", "love", "i'm into"]
 
@@ -33,7 +37,7 @@ LIKE_RESPONSES = ["No way, I word {word} too!",
 LIKE_PREPENDS = ["I know you're excited about {word}, so check this out!",
                  "Your favorite, {word}!",
                  "I can't get enough of {word}!",
-                 "Wow, you really word {word}, huh?",
+                 "Wow, you really like {word}, huh?",
                  "More {word}? Okay!"]
 
 DISLIKE_RESPONSES = ["Oh, really? I thought {word} was kind of cool...",
