@@ -65,7 +65,7 @@ class ChatBot:
         else:
 
             # If the user likes/dislikes a topic, prepend a little quip about it
-            if find_occurrence(self.likes_list, user_input):
+            if word := self.likes(user_input):
                 response = choose(cfg.LIKE_PREPENDS).format(word=word) + " "
             elif find_occurrence(self.dislikes_list, user_input):
                 response = choose(cfg.DISLIKE_PREPENDS).format(word=word) + " "
@@ -89,11 +89,22 @@ class ChatBot:
             self.confused_response_idx = (self.confused_response_idx + 1) % len(cfg.CONFUSED)
         self.chat(response)
 
+    def likes(self, user_input):
+        for word in self.likes_list:
+            if word in user_input:
+                return word
+
+    def dislikes(self, user_input):
+        for word in self.dislikes_list:
+            if word in user_input:
+                return word
+
     def find_like(self, doc):
         # Look for an occurrence of a like verb. If we find one, return the word.
         word = None
-        if find_occurrence(cfg.LIKE_VERBS, doc.text):
+        if find_occurrence(cfg.LIKE_VERBS, doc.text) and not "don't like" in doc.text and not "dont like" in doc.text:
             for token in doc:
+                # Find the token that's the object of the sentence and return it
                 if ("dobj" in token.dep_):
                     word = token.text
                     break
@@ -104,6 +115,7 @@ class ChatBot:
         word = None
         if find_occurrence(cfg.DISLIKE_VERBS, doc.text):
             for token in doc:
+                # Find the token that's the object of the sentence and return it
                 if ("dobj" in token.dep_):
                     word = token.text
                     break

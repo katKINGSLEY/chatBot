@@ -10,7 +10,7 @@ GOODBYES = ["Bye, have a nice day!", "Thanks for talking with me!", "Leaving so 
 
 LIKE_VERBS = ["like", "enjoy", "love", "i'm into"]
 
-DISLIKE_VERBS = ["hate", "sucks", "awful", "don't like"]
+DISLIKE_VERBS = ["hate", "sucks", "awful", "dont like", "don't like"]
 
 NAME_VERBS = ["name", "call", "llamo", "named", "i'm"]
 
