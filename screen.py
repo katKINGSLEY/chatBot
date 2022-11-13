@@ -1,120 +1,84 @@
+import config as cfg
 import msvcrt
 import os
-import random 
-
-
-def index(arr):
-    res = []
-    i = 0
-    for x in arr:
-        res.append((i,x))
-        i += 1
-    return res
-
-def raw_str(s):
-    return "\n".join(s.splitlines()[1:])
-
-HEADER = raw_str(r'''
-
-
-    o-----------------------------------------------------------------o
-    |            _______ _____   ______         __                    |
-    |           |    |  |     |_|   __ \.-----.|  |_.-----.           |
-    |           |       |       |    __/|  -__||   _|  -__|           |
-    |           |__|____|_______|___|   |_____||____|_____|           |
-    |                                                                 |        
-    o-----------------------------------------------------------------o''')
-EULA=\
-"  Please note that this conversation may be recorded for quality assurance."
-TOP = raw_str(r'''
-    o-----------------------------------------------------------------o
-    |                                                                 |''')
-LINE = raw_str(r'''
-    |                                                                 |''')
-PROMPT = raw_str(r'''
-    +-----------------------------------------------------------------+
-    |  >                                                              |
-    |                                                                 |''')
-BOTTOM = raw_str(r'''
-    o-----------------------------------------------------------------o''')
-
-POINTER_CHAR = "_"
-INPUT_START = PROMPT.find(">") + 1
-
-SCREEN_WIDTH = len(TOP.splitlines()[0])
-SCREEN_HEIGHT = 30  
-
-
-ARROW_KEYS = {b"H": "U", b"P": "D", b"K": "L", b"M": "R"}
 
 class Screen:  
     def __init__(self):
-        self.pointer = 1
+        self.pointer = 0
         self.current = []
         self.chat = []
+        self.last = ""
+        self.user_name = "Me"
 
-    def start(self):  
-        last = ""      
-        while True:
-            self.update()
-            key = msvcrt.getch()
-            #print(key)
-            #print(last)
-            if key == b'\x03':
-                # Keyboard interrupt
-                break
-            elif last == b'\xe0':
-                # Arrow keys, move pointer
-                if key == b"K":
-                    self.move_pointer(-1)
-                elif key == b"M":
-                    self.move_pointer(1)
-            elif key == b'\x08':
-                # Backspace
+    def step(self):  
+        key = msvcrt.getch()
+        #print(key)
+        #print(last)
+        if key == b'\x03':
+            # Keyboard interrupt
+            return "break"
+        elif self.last == b'\xe0':
+            # Arrow keys, move pointer
+            if key == b"K":
+                self.move_pointer(-1)
+            elif key == b"M":
+                self.move_pointer(1)
+        elif key == b'\x08':
+            # Backspace
+            if len(self.current) > 0:
                 self.current.pop(self.pointer-1)
                 self.pointer -= 1
-            elif key == b'\r':
-                # Enter (carriage return)
-                self.add_chat(random.choice(["Me","NLPete"]), "".join(self.current))
+        elif key == b'\r':
+            # Enter (carriage return)
+            if len(self.current) > 0:
+                msg = "".join(self.current)
+                self.add_chat(self.user_name, msg)
                 self.current.clear()
-            elif key != b'\xe0':
-                # hopefully keyboard input
-                try:
-                    if len(self.current) < 59*2-2:
-                        self.current.insert(self.pointer, key.decode())
-                        self.pointer += 1
-                except:
-                    print(f"Can't decode {key}")
-            last = key
+                self.pointer = 0
+                return msg       
+        elif key not in [b'\xe0', b'\t']:
+            # hopefully keyboard input
+            try:
+                if len(self.current) < 59*2-2:
+                    self.current.insert(self.pointer, key.decode())
+                    self.pointer += 1
+            except:
+                print(f"Can't decode {key}")
+        self.last = key
+        return None
 
     def add_chat(self, user, msg):
         # chat contains each line
         self.chat.append(user)
-        for line in [msg[:59], msg[59:]]:
-            if line != "":
-                self.chat.append(line)
+        last = 0
+        for i in range(1,10):
+            line = msg[last:last+59]
+            if line == "":
+                break
+            last = last + 59
+            self.chat.append(line)
         self.chat.append("")
 
-    def update(self):
+    def update(self, thinking=False):
         os.system('cls' if os.name == 'nt' else 'clear')
-        print(HEADER)
+        print(cfg.HEADER)
         print()
-        print(EULA)
-        print(TOP)
+        print(cfg.EULA)
+        print(cfg.TOP)
         self.display_chat()
-        self.display_input()
-        print(BOTTOM)
+        self.display_input(thinking)
+        print(cfg.BOTTOM)
 
     def move_pointer(self, move):
         if (move < 0 and self.pointer > 0)\
-        or (move > 0 and self.pointer < 59*2):
+        or (move > 0 and self.pointer < 59*2 and self.pointer < len(self.current)):
             self.pointer += move
 
 
     def display_chat(self):
         lines = []
-        for i in range(SCREEN_HEIGHT-3):
-            lines.append(list(LINE))
+        for i in range(cfg.SCREEN_HEIGHT-3):
+            lines.append(list(cfg.LINE))
 
         msg_index = len(self.chat)-1
         for line in reversed(lines):
@@ -122,36 +86,39 @@ class Screen:
                 break
             start_pos = 9
             msg = self.chat[msg_index]
-            if msg in ["Me", "NLPete"]:
+            if msg in [self.user_name, "NLPete"]:
                 start_pos = 7
 
-            for i, char in index(msg):
+            for i, char in cfg.index(msg):
                 line[start_pos + i] = char
             msg_index -= 1
         print("\n".join(["".join(l) for l in lines]))
 
 
     #TODO: fix bug where _ doesnt wrap to other side
-    def display_input(self):
+    def display_input(self, thinking):
         assert len(self.current) < 59*2-1
 
-        str_len = len(self.current)
-        new_str = list(PROMPT)
-        offset = 0
-        start_pos = INPUT_START
-        for i, char in index(self.current):
-            if i >= 59:
-                start_pos = INPUT_START + 14
-            if i == self.pointer:
-                offset = 1
-                new_str[start_pos + i] = POINTER_CHAR
-            new_str[start_pos + i + offset] = char
+        if not thinking:
+            str_len = len(self.current)
+            new_str = list(cfg.PROMPT)
+            offset = 0
+            start_pos = cfg.INPUT_START
+            for i, char in cfg.index(self.current):
+                if i >= 59:
+                    start_pos = cfg.INPUT_START + 13
+                if i == self.pointer:
+                    offset = 1
+                    new_str[start_pos + i] = cfg.POINTER_CHAR
+                new_str[start_pos + i + offset] = char
 
-        if offset == 0:
-            pos = start_pos + str_len
-            if len(self.current) >= 58:
-                pos += 14
-            new_str[start_pos + str_len] = POINTER_CHAR
+            if offset == 0:
+                pos = start_pos + str_len
+                if len(self.current) >= 58:
+                    pos += 13
+                new_str[start_pos + str_len] = cfg.POINTER_CHAR
+            print("".join(new_str))
+        else:
+            print(cfg.PROMPT_THINKING)
 
 
-        print("".join(new_str))

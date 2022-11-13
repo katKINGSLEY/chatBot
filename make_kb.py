@@ -1,73 +1,63 @@
-"""
-    Name:   Kathryn Kingsley and Jonathan Yu
-    UTID:   KLK170230 and JCY180000
-    Class:  NLP CS4395.001
-    Date:   Fall 2022
-    Desc.:  This is the main .py file for the chatBot pair assignment. It creates the knowledge base
-            using Doctor Mazidi's textbook for NLP.
+import PyPDF2
+import pickle
+import spacy
+import re
+from nltk import sent_tokenize
+from nltk.corpus import stopwords
 
-"""
-import pathlib  # to read the input file
-from nltk import sent_tokenize  # needed in clean_text
-import yake  # for key word identification
-from nltk.corpus import stopwords  # to eliminate not functional words
-import pickle  # for picklin'
+blacklist = [". . . . . . . ", "Section", "Chapter", "http:", "https"]
+stop_words = stopwords.words("english")
 
-
-def get_text(file):
-    with open(file, 'r') as file:
-        # remove new lines
-        raw_text = file.read().replace('\n', '')
-    # close the file
-    file.close()
-    return raw_text
-
-
-def get_sentences(text):
-    sentences = sent_tokenize(text, 'english')
-    sentences = [sent for sent in sentences if not sent.__contains__('....') and not sent.__contains__('. . . .')
-                 and not sent.__contains__('https://')]
-    return sentences
+def filter(sent):
+	sent = " ".join(sent)
+	for b in blacklist:
+		if b in sent:
+			return False
+	try:
+		str(sent)
+	except:
+		print("Clip bytes")
+		return False
+	return ((len(sent) > 200 and len(sent) > 20)
+	   	and (sent.count(".") > 15))
 
 
-def get_keywords(text):
-    stop_words = stopwords.words('english')
-    extractor = yake.KeywordExtractor(top=500, stopwords=stop_words)  # change number of keywords HERE!
-    keywords = extractor.extract_keywords(text)
-    # print(len(keywords))
-    keywords = [kw for kw, v in keywords]  # get only the word
-    return keywords
+if __name__ == "__main__":
+	nlp = spacy.load("en_core_web_md")
+	pdf_file = open("MazidiBook.pdf", "rb")
+	pdf_reader = PyPDF2.PdfFileReader(pdf_file)
+
+	# content is on pages [13,263]
+	start_page = 13
+	end_page = 263
+	pages = [p for p in range(start_page, end_page+1)]
+
+	# Ignore the index pages
+	page_blacklist = [15,55,99,131,173,231,261]
+	text = ""
+	for i in [p for p in pages if p not in page_blacklist]:
+		page = pdf_reader.getPage(i)
+		text += " " + page.extractText().encode('utf-8').decode('ascii', 'ignore')
+	pdf_file.close()
 
 
-def make_dictionary(kw, sents):
-    kw_dict = {}
-    sentences = []
-    for word in kw:
-        sentences = [sent for sent in sents if word in sent]
-        kw_dict[word] = sentences
-        sentences = []  # reset sentences
-    # print(kw_dict)
-    return kw_dict
+	kb = {}
+	kb["words"] = {}
+	for word in text.split():
+		if word.isalpha() and word not in stop_words:
+			kb["words"][word] = True
 
-
-def pickle_it(dic):
-    filename = 'nlp_dict.p'
-    outfile = open(filename, 'wb')
-    pickle.dump(dic, outfile)
-    outfile.close()
-
-
-def main():
-    filepath = pathlib.Path.cwd().joinpath('nlpbook.txt')
-    if not filepath:
-        print("Issue with opening file. Exiting program...")
-        exit(1)
-    text = get_text(filepath).lower()
-    sentences = get_sentences(text)
-    key_words = get_keywords(text)
-    kw_dict = make_dictionary(key_words, sentences)
-    pickle_it(kw_dict)
-
-
-if __name__ == '__main__':
-    main()
+	text = ' '.join(text.split())
+	text = text.replace("*** Draft copy of NLP with Python by Karen Mazidi: Do not distribute ***", "")	
+	sents = sent_tokenize(text)
+	kb["lookup"] = []
+	for i in range(1,len(sents)):
+		s0 = sents[i-1]
+		#s1 = sents[i]
+		if not filter(s0):# and not filter(s1):
+			kb["lookup"].append(s0)#(s0, s1))
+	print(kb)
+	open("out.txt","w").write("\n".join([f"<{k}" for k in kb["lookup"]]))
+	pickle_file = open("mazidi_book_kb.p", "wb")
+	pickle.dump(kb, pickle_file)
+	pickle_file.close()
