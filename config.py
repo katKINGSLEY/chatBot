@@ -15,7 +15,6 @@ DISLIKE_VERBS = ["hate", "sucks", "awful", "don't like"]
 NAME_VERBS = ["name", "call", "llamo", "named", "i'm"]
 
 CONFUSED = ["I'm confused... Can we change the subject?",
-            "Was that english?",
             "That went straight over my head. Can we move on?",
             "I'm sorry, I honestly have no clue what you just said.",
             "Dude I lost you at the first word. Could you try a different question?",
@@ -23,6 +22,7 @@ CONFUSED = ["I'm confused... Can we change the subject?",
             "Huh..?",
             "What..?",
             "Thats crazy.",
+            "Was that english?",
             "Sorry, I fell asleep lol. Could you say that again?"]
 
 NAME_RESPONSES = ["Nice to meet you, {new_name}! How can I help you today?",
@@ -31,7 +31,7 @@ NAME_RESPONSES = ["Nice to meet you, {new_name}! How can I help you today?",
                   "I give up. I'll call you Pete from now on.",
                   "..."]
 
-LIKE_RESPONSES = ["No way, I word {word} too!",
+LIKE_RESPONSES = ["No way, I like {word} too!",
                   "Me too, {word} is sweet!",
                   "Cool! Let me tell you more about {word}"]
 LIKE_PREPENDS = ["I know you're excited about {word}, so check this out!",
@@ -52,7 +52,7 @@ LIKE_CHANGE = ["I thought you didn't like {word}! I'll keep that in mind",
                "I didn't know that you were into {word}! I'll remember that.",
                "Oh, really? I'll talk about {word} more then."]
 DISLIKE_CHANGE = ["I thought you liked {word}. Oh well, your loss.",
-                  "Oh, really? Okay, I'll keep that in mind, I didn't realize you weren't a fan of {word}",
+                  "Oh, really? Okay, I'll keep that in mind, I thought you were a fan of {word}",
 
 ]
 
@@ -97,7 +97,7 @@ PROMPT = raw_str(r'''
     +-----------------------------------------------------------------+
     |  >                                                              |
     |                                                                 |''')
-PROMPT_THINKING = raw_str(r'''
+PROMPT_PAUSE = raw_str(r'''
     +-----------------------------------------------------------------+
     |                                                                 |
     |                                                                 |''')
@@ -110,7 +110,4 @@ INPUT_START = PROMPT.find(">") + 2
 SCREEN_WIDTH = len(TOP.splitlines()[0])
 SCREEN_HEIGHT = 30  
 
-
 ARROW_KEYS = {b"H": "U", b"P": "D", b"K": "L", b"M": "R"}
-
-

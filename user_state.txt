@@ -1,0 +1,37 @@
+User Name: 
+User likes: 
+User dislikes: 
+Chat log: 
+NLPete
+Hi! I'm NLPete, your comprehensive guide on natural languag
+e processing! What's your name?
+
+Me
+hi pete, tell me about NLP
+
+NLPete
+TextBlob does a lot of useful NLP tasks quickly and accurat
+ely.
+
+Me
+really? what about stop words
+
+NLPete
+What to include in the stop words will be a critical decisi
+on, which
+will also be domain and problem dependent.
+
+Me
+stop words
+
+NLPete
+Relationships between Words
+7.1 WordNet
+WordNet is a lexica
+l database of nouns, verbs, adjectives, and adverbs that pr
+ovides short denitions
+called glosses, and use examples.
+
+NLPete
+Thanks for talking with me!
+
