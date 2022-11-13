@@ -184,7 +184,7 @@ class ChatBot:
     # Dump user state to a text file.
     def dump(self):
         f = open("user_state.txt", "w")
-        f.write(f"User Name: {self.user_name}\n")
+        f.write(f"User Name: {self.screen.user_name}\n")
         f.write("User likes: " + ", ".join(self.likes_list) + "\n")
         f.write("User dislikes: " + ", ".join(self.dislikes_list) + "\n")
         f.write("Chat log: \n")
